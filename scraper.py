@@ -89,29 +89,37 @@ def to_tree(species, level=None):
     return species_dom.xpath('//span[@class="species"]')[0][0][0].text
 
 
-def find_distance(sp1, sp2):
+def find_distance(sp1, sp2, level=None):
     """
 
     :param sp1: species (corresponding to ending of the Wikipedia link)
     :type sp1: str
     :param sp2: species (corresponding to ending of the Wikipedia link)
     :type sp2: str
+    :param level: certain distance up in a tree of life of the species
+                  (level є [1; 6])
+    :type level: int
     :return:
     """
-    node_sp1 = to_tree(species=sp1)
-    node_sp2 = to_tree(species=sp2)
-    distance = nx.algorithms.shortest_paths.generic. \
-                   shortest_path_length(evo_graph, node_sp1, node_sp2) // 2
-    print('# Result ##########################'
-          '\n{0} has a species name {1}.'
-          '\n{2} has a species name {3}.'
-          '\nThe distance between {1} and {3} is {4}.'
-          '\n###################################'.format(sp1.capitalize(),
-                                                         node_sp1.lower(),
-                                                         sp2.capitalize(),
-                                                         node_sp2.lower(),
-                                                         distance))
-    return distance
+    node_sp1 = to_tree(species=sp1, level=level)
+    node_sp2 = to_tree(species=sp2, level=level)
+    try:
+        distance = nx.algorithms.shortest_paths.generic. \
+                       shortest_path_length(evo_graph, node_sp1, node_sp2) // 2
+        print('# Result ##########################'
+              '\n{0} has a species name {1}.'
+              '\n{2} has a species name {3}.'
+              '\nThe distance between {1} and {3} is {4}.'
+              '\n###################################'.format(sp1.capitalize(),
+                                                             node_sp1.lower(),
+                                                             sp2.capitalize(),
+                                                             node_sp2.lower(),
+                                                             distance))
+        return distance
+    except nx.exception.NetworkXNoPath:
+        print("No path between {0} and {1}. "
+              "Try to run again without setting flag -l (--level)".format(sp1,
+                                                                          sp2))
 
 
 if __name__ == '__main__':
@@ -120,7 +128,7 @@ if __name__ == '__main__':
             if not args.leaf_to:
                 logging.info('PLease, enter leaf_to using flag -t')
             else:
-                find_distance(args.leaf_from, args.leaf_to)
+                find_distance(args.leaf_from, args.leaf_to, args.level)
         if args.task == 'leaf':
             to_tree(args.leaf_from, args.level)
         if args.draw:
